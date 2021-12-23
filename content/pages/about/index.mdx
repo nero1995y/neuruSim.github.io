@@ -21,7 +21,129 @@ This is a paragraph.
 # Header 1
 
 ## Header 2
+    실무에서 엄청 중요함 !
 
+    쿼리로 명시적으로 동적으로 원하는 쿼리를 가져 올 수 있는것이다.
+
+    ![스크린샷 2021-12-20 오후 10.43.09.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7c377c0e-7f33-4c5f-ac6e-00705cf8d2ae/스크린샷_2021-12-20_오후_10.43.09.png)
+
+    TEAM 과 맴버를 전부 가져오고 싶을때  이렇게 나온다. 이너조인이기 때문에 결과적으로 이렇게 나온다.
+
+    영속성 컨테츠는 아래 5개를 보관하여 반환한다.
+
+    ```java
+    String pathQuery = "select m From Member m join fetch m.team" ;
+
+    Hibernate:
+        /* select
+            m
+        From
+            Member m
+        join
+            fetch m.team */ select
+                member0_.id as id1_0_0_,
+                team1_.id as id1_3_1_,
+                member0_.age as age2_0_0_,
+                member0_.TEAM_ID as TEAM_ID5_0_0_,
+                member0_.type as type3_0_0_,
+                member0_.username as username4_0_0_,
+                team1_.name as name2_3_1_
+            from
+                Member member0_
+            inner join
+                Team team1_
+                    on member0_.TEAM_ID=team1_.id
+    Member{id=4, username='memberType', age=14}
+    Member{id=9, username='회원페치조인1', age=0}
+    Member{id=10, username='회원페치조인2', age=0}
+    Member{id=11, username='회원페치조인3', age=0}
+
+    // 조인으로 한방쿼리가 나왔다.
+    ```
+
+    프록시가 아니라 영속성 데이터에 이미 올라가 있다. 진짜 데이터가 채워져 있는것
+
+    지연로딩과 상관없이 찍히는 것
+
+    N+1  문제 해결
+
+    조회된 데이터 갯수만큼 쿼리가 나가는것
+
+    ## 컬렉션 페치 조인
+
+    - 일대다 관계 , 컬렉션 페치조인
+    - 주위할것 일대다에서는 뻥튀기된다.
+    - 팀입장에서는 맴버가 두개라서 low 2개가됨
+
+    DISTINCT
+
+    1. SQL 에  추가
+    2. 같은 식별자를 Team 엔티티 제거 애플리케이션 올라올떄 한번 더 걸러준다.
+
+    페치 조인과 일반차이
+
+    그냥 조인은 팀만 가져옴 !
+
+    ## 페치조인의 한계
+
+    - 페치 조인 대상에는 별칭을 줄 수 없다.
+
+         why? 연관된것중에 한명만 가져온다? 관례다 누락되어서 가급적 사용 x
+
+        JPA 객체그래프란 전부 모조리 조회하는 것이다. 연관관계를 찾아간다는 것은 팀에서 맴버스가 다가져온다는 전제하에 동작하는 것이다.  때문에 별칭을 주지말자
+
+    - 둘 이상의 컬렉션은 페치 조인 할 수 없다.
+        - 데이터 정합성 없음
+        - ** 될 수 있다.
+
+    - **컬렉션을 페치 조인하면 페이징 API(setFirstResult,setMaxResults)를 사용할 수 없다**
+        - **일대일,다대일같은 단일값연관필드들은 페치조인해도 페이징 가능**
+        - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징
+
+        ```java
+        WARN: firstResult/maxResult specified with collection fectch; applying in memory!
+        /// 경고창이 나온다.
+        ```
+
+        백만건이 있다면 전부가져오기때문에 객체 그래프의 설계 원칙이다
+
+        절대 쓰지 않아야한다
+
+
+    해결방안
+
+    쿼리를 3번해서 나가면 비효율적이다.
+
+    @BatchSize(100)
+
+    내팀 뿐만아니라 다른팀  인쿼리로 100개씩 넘긴다. N+1 10번나가야하는 상황을 N 날려서 10번 이런상황을 해결하는 법이 배치사이즈이다.
+
+    주로 글로벌 세팅으로 가져간다.
+
+    결론적으로 , 테이블 수만큼 쿼리를 쓸 수있다.
+
+    - 3번째 DTO 로 뺀다.
+
+    성능최적화
+
+    엔티티에 글로벌 전략은 모든 지연로딩
+
+    N+1 문제는 해결된다. 거의 페치조인으로 다잡았다.
+
+    ---
+
+    모든 곳에 페치조인 해결 x
+
+    엔티티 모양 아닌 결과면 DTO 로 바꿔라
+
+    페치조인, 배치사이즈 > 잘 알아 두어야 성능 이슈를 해결할 수 있다
+
+    persistence.xml  추가하기
+
+    ```xml
+    <property name="hibernate.default_batch_fetch_size" value="100" />
+
+    ```
     Header 1
     ========
 
