@@ -15,7 +15,7 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "copy": "cp google895a6bbe79efd147.html public/",
-    "deploy": "gatsby build && gh-pages -d public"
+    "deploy": "gatsby build && npm run copy && gh-pages -d public -b gh-pages"
   },
   "dependencies": {
     "@lekoarts/gatsby-theme-jodie": "^3.0.0",
