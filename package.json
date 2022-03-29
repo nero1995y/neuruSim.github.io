@@ -14,6 +14,7 @@
     "start": "gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
+    "copy": "cp google895a6bbe79efd147.html public/",
     "deploy": "gatsby build && gh-pages -d public"
   },
   "dependencies": {
